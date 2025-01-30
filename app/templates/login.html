@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Note Connexion</title>
+    <link rel="stylesheet" href="/static/styles.css">
+
+</head>
+<body>
+    <div class="background"></div>
+    <div class="container">
+        <div class="wrapper" id="wrapper">
+            <!-- Student Interface -->
+            <div class="interface student-interface">
+                <h2>Connexion Étudiant</h2>
+                <form>
+                    <div class="form-group">
+                        <label for="student-email">Email</label>
+                        <input type="email" id="student-email" name="email" placeholder="Entrez votre email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="student-password">Mot de passe</label>
+                        <input type="password" id="student-password" name="password" placeholder="Entrez votre mot de passe" required>
+                    </div>
+                    <button type="submit" class="login-btn">Connexion</button>
+                </form>
+                <div class="toggle-btn" onclick="toggleInterface('professor')">Connexion Professeur</div>
+                <div class="toggle-btn" onclick="toggleInterface('director')">Connexion Direction</div>
+            </div>
+
+            <!-- Professor Interface -->
+            <div class="interface professor-interface">
+                <h2>Connexion Professeur</h2>
+                <form>
+                    <div class="form-group">
+                        <label for="professor-email">Email</label>
+                        <input type="email" id="professor-email" name="email" placeholder="Entrez votre email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="professor-password">Mot de passe</label>
+                        <input type="password" id="professor-password" name="password" placeholder="Entrez votre mot de passe" required>
+                    </div>
+                    <button type="submit" class="login-btn">Connexion</button>
+                </form>
+                <div class="toggle-btn" onclick="toggleInterface('student')">Connexion Étudiant</div>
+                <div class="toggle-btn" onclick="toggleInterface('director')">Connexion Direction</div>
+            </div>
+
+            <!-- Director Interface -->
+            <div class="interface director-interface">
+                <h2>Connexion Direction</h2>
+                <form>
+                    <div class="form-group">
+                        <label for="director-email">Email</label>
+                        <input type="email" id="director-email" name="email" placeholder="Entrez votre email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="director-password">Mot de passe</label>
+                        <input type="password" id="director-password" name="password" placeholder="Entrez votre mot de passe" required>
+                    </div>
+                    <button type="submit" class="login-btn">Connexion</button>
+                </form>
+                <div class="toggle-btn" onclick="toggleInterface('student')">Connexion Étudiant</div>
+                <div class="toggle-btn" onclick="toggleInterface('professor')">Connexion Professeur</div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>
