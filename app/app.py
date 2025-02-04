@@ -1,5 +1,3 @@
-# app/app.py
-
 from flask import Flask
 from . import create_app
 

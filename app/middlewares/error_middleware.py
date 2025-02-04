@@ -179,7 +179,6 @@ def register_error_handlers(app: Flask) -> None:
         Returns:
             tuple: A tuple containing the JSON response and HTTP status code.
         """
-        # If the error is an HTTPException, use its code and msg
         if isinstance(error, HTTPException):
             logger.error(f"{error.code} {error.name}: {error.description}")
             response = {
@@ -188,7 +187,6 @@ def register_error_handlers(app: Flask) -> None:
             }
             return jsonify(response), error.code
         else:
-            # For non-HTTP exceptions, return a generic 500 error
             logger.error(f"Unhandled Exception: {str(error)}", exc_info=True)
             response = {
                 'msg': 'An error occurred.',

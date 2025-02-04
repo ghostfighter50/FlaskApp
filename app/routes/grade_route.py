@@ -1,5 +1,3 @@
-# app/routes/grade_routes.py
-
 import logging
 from flask import Blueprint
 from ..controllers.grade_controller import GradeController

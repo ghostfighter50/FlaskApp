@@ -1,16 +1,19 @@
 import logging
-from typing import Tuple, Optional, List, Dict, Any
-from flask_paginate  import Pagination
-from ..config.models import Course, Enrollment
+from typing import Tuple, Optional, List
+from flask_paginate import Pagination
+from ..config.models import Course, Enrollment, Grade
 from ..config.database import db
 
 logger = logging.getLogger(__name__)
 
+
 class CourseService:
     """
-    Service class for handling course management operations such as
-    retrieving, searching, creating, updating, deleting courses,
-    and managing enrollments.
+    Service class for managing course-related operations, including:
+    - Retrieving courses with pagination.
+    - Searching courses by name.
+    - Enrolling and unenrolling students.
+    - Creating, updating, and deleting courses.
     """
 
     @staticmethod
@@ -23,51 +26,51 @@ class CourseService:
             per_page (int): The number of courses per page.
 
         Returns:
-            Tuple[List[Course], Pagination]: A tuple containing the list of courses
-            and a Pagination object with Pagination details.
+            Tuple[List[Course], Pagination]: A tuple containing a list of courses
+            and a Pagination object with pagination details.
         """
-        logger.debug(f"Fetching courses - Page: {page}, Per Page: {per_page}")
+        logger.debug("Fetching courses - Page: %d, Per Page: %d", page, per_page)
         pagination: Pagination = db.session.query(Course).paginate(page=page, per_page=per_page, error_out=False)
-        logger.info(f"Retrieved {len(pagination.items)} courses on page {page}.")
+        logger.info("Retrieved %d courses on page %d.", len(pagination.items), page)
         return pagination.items, pagination
 
     @staticmethod
     def get_course_by_id(course_id: str) -> Optional[Course]:
         """
-        Retrieves a course from the database by its unique ID.
+        Retrieves a course by its unique ID.
 
         Args:
             course_id (str): The unique identifier of the course.
 
         Returns:
-            Optional[Course]: The Course object if found, else None.
+            Optional[Course]: The Course object if found, otherwise None.
         """
-        logger.debug(f"Fetching course by ID: {course_id}")
-        course: Optional[Course] = db.session.get(Course, course_id)  # Using Session.get() for direct retrieval
+        logger.debug("Fetching course by ID: %s", course_id)
+        course: Optional[Course] = db.session.get(Course, course_id)
         if course:
-            logger.debug(f"Course found: {course.name} (ID: {course.id})")
+            logger.debug("Course found: %s (ID: %s)", course.name, course.id)
         else:
-            logger.debug(f"No course found with ID: {course_id}")
+            logger.debug("No course found with ID: %s", course_id)
         return course
 
     @staticmethod
     def search_courses_by_name(name_query: str) -> List[Course]:
         """
-        Searches for courses whose name contains the given query string.
+        Searches for courses by name.
 
         Args:
             name_query (str): The query string to search for in course names.
 
         Returns:
-            List[Course]: A list of Course objects matching the search criteria.
+            List[Course]: A list of Course objects matching the query.
         """
-        logger.debug(f"Searching courses with name containing: {name_query}")
+        logger.debug("Searching courses with name containing: %s", name_query)
         courses: List[Course] = (
             db.session.query(Course)
             .filter(Course.name.ilike(f"%{name_query}%"))
             .all()
         )
-        logger.info(f"Found {len(courses)} courses matching query '{name_query}'.")
+        logger.info("Found %d courses matching query '%s'.", len(courses), name_query)
         return courses
 
     @staticmethod
@@ -81,13 +84,13 @@ class CourseService:
         Returns:
             List[Enrollment]: A list of Enrollment objects representing student enrollments.
         """
-        logger.debug(f"Fetching students in course ID: {course_id}")
+        logger.debug("Fetching students in course ID: %s", course_id)
         enrollments: List[Enrollment] = (
             db.session.query(Enrollment)
             .filter_by(course_id=course_id)
             .all()
         )
-        logger.info(f"Retrieved {len(enrollments)} students for course ID: {course_id}.")
+        logger.info("Retrieved %d students for course ID: %s.", len(enrollments), course_id)
         return enrollments
 
     @staticmethod
@@ -102,17 +105,17 @@ class CourseService:
         Returns:
             Course: The newly created Course object.
         """
-        logger.debug(f"Creating course: {name} by professor ID: {professor_id}")
+        logger.debug("Creating course: %s by professor ID: %s", name, professor_id)
         course = Course(name=name, professor_id=professor_id)
         db.session.add(course)
         db.session.commit()
-        logger.info(f"Course created with ID: {course.id}")
+        logger.info("Course created with ID: %s", course.id)
         return course
 
     @staticmethod
     def update_course(course: Course, name: str) -> Course:
         """
-        Updates the name of an existing course.
+        Updates an existing course's name.
 
         Args:
             course (Course): The Course object to be updated.
@@ -121,10 +124,10 @@ class CourseService:
         Returns:
             Course: The updated Course object.
         """
-        logger.debug(f"Updating course ID: {course.id} with new name: {name}")
+        logger.debug("Updating course ID: %s with new name: %s", course.id, name)
         course.name = name
         db.session.commit()
-        logger.info(f"Course ID: {course.id} updated successfully.")
+        logger.info("Course ID: %s updated successfully.", course.id)
         return course
 
     @staticmethod
@@ -135,10 +138,16 @@ class CourseService:
         Args:
             course (Course): The Course object to be deleted.
         """
-        logger.debug(f"Deleting course ID: {course.id}")
+        logger.debug("Deleting course ID: %s", course.id)
+
+        # Ensure all related records (enrollments, grades) are removed first
+        db.session.query(Enrollment).filter_by(course_id=course.id).delete()
+        db.session.query(Grade).filter_by(course_id=course.id).delete()
+
+        # Delete the course record
         db.session.delete(course)
         db.session.commit()
-        logger.info(f"Course ID: {course.id} deleted successfully.")
+        logger.info("Course ID: %s deleted successfully.", course.id)
 
     @staticmethod
     def join_course(user_id: str, course_id: str) -> Optional[Enrollment]:
@@ -150,22 +159,22 @@ class CourseService:
             course_id (str): The unique identifier of the course.
 
         Returns:
-            Optional[Enrollment]: The Enrollment object if successful, else None (e.g., if already enrolled).
+            Optional[Enrollment]: The Enrollment object if successful, or None if already enrolled.
         """
-        logger.debug(f"User ID: {user_id} attempting to join course ID: {course_id}")
+        logger.debug("User ID: %s attempting to join course ID: %s", user_id, course_id)
         existing_enrollment = (
             db.session.query(Enrollment)
             .filter_by(student_id=user_id, course_id=course_id)
             .first()
         )
         if existing_enrollment:
-            logger.warning(f"User ID: {user_id} is already enrolled in course ID: {course_id}")
+            logger.warning("User ID: %s is already enrolled in course ID: %s", user_id, course_id)
             return None
-        
+
         enrollment = Enrollment(student_id=user_id, course_id=course_id)
         db.session.add(enrollment)
         db.session.commit()
-        logger.info(f"User ID: {user_id} joined course ID: {course_id} successfully.")
+        logger.info("User ID: %s joined course ID: %s successfully.", user_id, course_id)
         return enrollment
 
     @staticmethod
@@ -178,21 +187,21 @@ class CourseService:
             course_id (str): The unique identifier of the course.
 
         Returns:
-            Optional[Enrollment]: The Enrollment object if successful, else None (e.g., if not enrolled).
+            Optional[Enrollment]: The Enrollment object if successful, or None if not enrolled.
         """
-        logger.debug(f"User ID: {user_id} attempting to leave course ID: {course_id}")
+        logger.debug("User ID: %s attempting to leave course ID: %s", user_id, course_id)
         enrollment = (
             db.session.query(Enrollment)
             .filter_by(student_id=user_id, course_id=course_id)
             .first()
         )
         if not enrollment:
-            logger.warning(f"User ID: {user_id} is not enrolled in course ID: {course_id}")
+            logger.warning("User ID: %s is not enrolled in course ID: %s", user_id, course_id)
             return None
 
         db.session.delete(enrollment)
         db.session.commit()
-        logger.info(f"User ID: {user_id} left course ID: {course_id} successfully.")
+        logger.info("User ID: %s left course ID: %s successfully.", user_id, course_id)
         return enrollment
 
     @staticmethod
@@ -206,13 +215,11 @@ class CourseService:
         Returns:
             List[Course]: A list of Course objects taught by the professor.
         """
-        logger.debug(f"Fetching courses taught by professor ID: {professor_id}")
+        logger.debug("Fetching courses taught by professor ID: %s", professor_id)
         courses: List[Course] = (
             db.session.query(Course)
             .filter_by(professor_id=professor_id)
             .all()
         )
-        logger.info(f"Found {len(courses)} courses taught by professor ID: {professor_id}.")
+        logger.info("Found %d courses taught by professor ID: %s.", len(courses), professor_id)
         return courses
-
-    

@@ -1,61 +1,85 @@
 import logging
 from typing import Optional
+
 from werkzeug.security import generate_password_hash, check_password_hash
+
 from .user_service import UserService
 from ..config.models import User
 from ..config.database import db
 
 logger = logging.getLogger(__name__)
 
+
 class AuthService:
     """
-    Service layer for authentication operations
+    Service layer for authentication operations.
     """
+
     @staticmethod
     def authenticate_user(email: str, password: str) -> Optional[User]:
         """
         Authenticate a user by verifying the provided email and password.
+
+        This method retrieves the user via the UserService and uses the
+        user's own password checking method to verify credentials.
 
         Args:
             email (str): The user's email.
             password (str): The user's password in plain text.
 
         Returns:
-            Optional[User]: The authenticated User object or None if authentication fails.
+            Optional[User]: The authenticated User object if credentials are valid,
+            otherwise None.
         """
-        logger.debug(f"Authenticating user with email: {email}")
+        logger.debug("Authenticating user with email: %s", email)
         user = UserService.get_user_by_email(email)
-        
-        if user and user.check_password(password):
-            logger.info(f"User (ID: {user.id}) authenticated successfully.")
-            return user
-        logger.warning("Invalid email/password combination. Authentication failed.")
+        if user:
+            # Using the user's own method to check the password provides
+            # flexibility if password checking logic needs customization.
+            if user.check_password(password):
+                logger.info("User (ID: %s) authenticated successfully.", user.id)
+                return user
+            else:
+                logger.warning("Password mismatch for user with email: %s", email)
+        else:
+            logger.warning("No user found with email: %s", email)
+
         return None
 
     @staticmethod
-    def update_user_password(user: User, current_pw: str, new_pw: str) -> bool:
+    def update_user_password(user: Optional[User], current_pw: str, new_pw: str) -> bool:
         """
         Update a user's password if the current password is correct.
 
+        This method verifies the current password before updating it to ensure
+        that unauthorized password changes are prevented.
+
         Args:
-            user (int): The user object to update.
+            user (Optional[User]): The user object to update. If None, the operation fails.
             current_pw (str): The user's current password in plain text.
             new_pw (str): The new password in plain text.
 
         Returns:
-            bool: True if the update was successful, False otherwise.
+            bool: True if the password was updated successfully, False otherwise.
         """
-        logger.debug(f"Attempting to update password for user ID: {user.id}")
-      
-        if not user:
-            logger.warning(f"User ID: {user_id} not found. Cannot update password.")
+        if user is None:
+            logger.warning("User not provided or not found. Cannot update password.")
             return False
 
+        logger.debug("Attempting to update password for user ID: %s", user.id)
+
+        # Verify the current password using a secure hash check
         if check_password_hash(user.password_hash, current_pw):
-            user.password_hash = generate_password_hash(new_pw)
-            db.session.commit()
-            logger.info(f"Password updated successfully for user ID: {user.id}")
-            return True
+            try:
+                # Generate a new hash for the new password and update the user's record
+                user.password_hash = generate_password_hash(new_pw)
+                db.session.commit()
+                logger.info("Password updated successfully for user ID: %s", user.id)
+                return True
+            except Exception as e:
+                logger.error("Error updating password for user ID: %s, Error: %s", user.id, e)
+                db.session.rollback()
+                return False
         else:
-            logger.warning(f"Incorrect current password for user ID: {user.id}.")
+            logger.warning("Incorrect current password for user ID: %s.", user.id)
             return False

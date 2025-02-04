@@ -1,5 +1,0 @@
-2025-01-29 10:59:52,802 - [DEBUG] - flask_app - <module>() - Logger initialized successfully.
-2025-01-29 10:59:52,802 - [INFO] - flask_app - <module>() - Flask application is starting.
-2025-01-29 10:59:52,802 - [WARNING] - flask_app - <module>() - Warning: This is a test log.
-2025-01-29 10:59:52,803 - [ERROR] - flask_app - <module>() - Error: Something went wrong.
-2025-01-29 10:59:52,804 - [CRITICAL] - flask_app - <module>() - Critical: Immediate attention needed.

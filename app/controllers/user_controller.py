@@ -1,19 +1,20 @@
 import logging
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from typing import Any, Dict, Tuple, Optional, List
+from typing import Any, Tuple
 
-from app.utils.serizializer import serialize_user
+from app.utils.serializer import serialize_user
 from ..services.user_service import UserService
-from ..config.models import User
 
 logger = logging.getLogger(__name__)
 
 class UserController:
     """
-    Controller for handling user management operations such as
-    listing users, retrieving user details, searching users,
-    creating, updating, and deleting users.
+    Controller for handling user management operations:
+    - Listing users
+    - Retrieving user details
+    - Searching users
+    - Creating, updating, and deleting users
     """
 
     def __init__(self):
@@ -25,7 +26,8 @@ class UserController:
         current_user_id = get_jwt_identity()
         current_user = self.user_service.get_user_by_id(current_user_id)
 
-        if current_user.role != 'Administrator':
+        # Only allow admins to list users
+        if current_user is None or current_user.role != 'Administrator':
             logger.warning(f"Unauthorized access attempt by user ID: {current_user_id}")
             return jsonify({'msg': 'Unauthorized access.'}), 403
 
@@ -34,7 +36,7 @@ class UserController:
             users_data = [serialize_user(user) for user in users]
             return jsonify({'users': users_data}), 200
         except Exception as e:
-            logger.error(f"Error listing users: {str(e)}")
+            logger.error(f"Error listing users: {str(e)}", exc_info=True)
             return jsonify({'msg': 'An error occurred while listing users.'}), 500
 
     @jwt_required()
@@ -43,11 +45,13 @@ class UserController:
         current_user_id = get_jwt_identity()
         current_user = self.user_service.get_user_by_id(current_user_id)
 
+        # Check if the user is authorized to access the user details
         user = self.user_service.get_user_by_id(user_id)
         if not user:
             logger.warning(f"User not found: ID {user_id}")
             return jsonify({'msg': 'User not found.'}), 404
 
+        # Allow access for Admins, Professors, or the user themselves
         if current_user.role not in ['Administrator', 'Professor'] and current_user.id != user_id:
             logger.warning(f"Unauthorized access attempt by user ID: {current_user_id}")
             return jsonify({'msg': 'Unauthorized access.'}), 403
@@ -61,7 +65,8 @@ class UserController:
         current_user_id = get_jwt_identity()
         current_user = self.user_service.get_user_by_id(current_user_id)
 
-        if current_user.role != 'Administrator':
+        # Only allow admins to search for users
+        if current_user is None or current_user.role != 'Administrator':
             logger.warning(f"Unauthorized access attempt by user ID: {current_user_id}")
             return jsonify({'msg': 'Unauthorized access.'}), 403
 
@@ -71,7 +76,7 @@ class UserController:
             users_data = [serialize_user(user) for user in users]
             return jsonify({'users': users_data}), 200
         except Exception as e:
-            logger.error(f"Error searching users: {str(e)}")
+            logger.error(f"Error searching users: {str(e)}", exc_info=True)
             return jsonify({'msg': 'An error occurred while searching users.'}), 500
 
     @jwt_required()
@@ -80,7 +85,8 @@ class UserController:
         current_user_id = get_jwt_identity()
         current_user = self.user_service.get_user_by_id(current_user_id)
 
-        if current_user.role != 'Administrator':
+        # Only allow admins to create users
+        if current_user is None or current_user.role != 'Administrator':
             logger.warning(f"Unauthorized access attempt by user ID: {current_user_id}")
             return jsonify({'msg': 'Unauthorized access.'}), 403
 
@@ -105,10 +111,12 @@ class UserController:
 
         try:
             user = self.user_service.create_user(name, email, password, role)
+            # Re-fetch the user to ensure all fields are loaded.
+            user = self.user_service.get_user_by_id(user.id)
             user_data = serialize_user(user)
             return jsonify({'msg': 'User created successfully.', 'user': user_data}), 200
         except Exception as e:
-            logger.error(f"Error creating user: {str(e)}")
+            logger.error(f"Error creating user: {str(e)}", exc_info=True)
             return jsonify({'msg': 'An error occurred while creating the user.'}), 500
 
     @jwt_required()
@@ -117,7 +125,8 @@ class UserController:
         current_user_id = get_jwt_identity()
         current_user = self.user_service.get_user_by_id(current_user_id)
 
-        if current_user_id != user_id and current_user.role != 'Administrator':
+        # Only allow the user themselves or an admin to update
+        if current_user is None or (current_user.id != user_id and current_user.role != 'Administrator'):
             logger.warning(f"Unauthorized access attempt by user ID: {current_user_id}")
             return jsonify({'msg': 'Unauthorized access.'}), 403
 
@@ -133,10 +142,12 @@ class UserController:
 
         try:
             updated_user = self.user_service.update_user(user, name, email, password)
+            # Re-fetch the user to ensure updated values.
+            updated_user = self.user_service.get_user_by_id(updated_user.id)
             user_data = serialize_user(updated_user)
             return jsonify({'msg': 'User updated successfully.', 'user': user_data}), 200
         except Exception as e:
-            logger.error(f"Error updating user ID: {user_id} - {str(e)}")
+            logger.error(f"Error updating user ID: {user_id} - {str(e)}", exc_info=True)
             return jsonify({'msg': 'An error occurred while updating the user.'}), 500
 
     @jwt_required()
@@ -145,7 +156,8 @@ class UserController:
         current_user_id = get_jwt_identity()
         current_user = self.user_service.get_user_by_id(current_user_id)
 
-        if current_user.role != 'Administrator':
+        # Only admins can delete users
+        if current_user is None or current_user.role != 'Administrator':
             logger.warning(f"Unauthorized access attempt by user ID: {current_user_id}")
             return jsonify({'msg': 'Unauthorized access.'}), 403
 
@@ -158,5 +170,5 @@ class UserController:
             self.user_service.delete_user(user)
             return jsonify({'msg': 'User deleted successfully.'}), 200
         except Exception as e:
-            logger.error(f"Error deleting user ID: {user_id} - {str(e)}")
+            logger.error(f"Error deleting user ID: {user_id} - {str(e)}", exc_info=True)
             return jsonify({'msg': 'An error occurred while deleting the user.'}), 500

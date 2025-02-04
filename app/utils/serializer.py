@@ -26,40 +26,43 @@ def serialize_course(course: Course) -> Dict[str, Any]:
         return course_data
 
 
-def serialize_user(user: User) -> Dict[str, Any]:
-        """
-        Serializes a User object into a dictionary for API responses.
+# app/utils/serizializer.py
+import logging
 
-        Args:
-            user (User): The User object to serialize.
+logger = logging.getLogger(__name__)
 
-        Returns:
-            Dict[str, Any]: A dictionary representation of the user.
-        """
-        logger.debug(f"Serializing user ID: {user.id}")
-        user_data = {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email,
-            "role": user.role,
-            "created_at": user.created_at.isoformat() if user.created_at else None,
-            "updated_at": user.updated_at.isoformat() if user.updated_at else None,
-        }
+def serialize_user(user):
+    """
+    Serialize a User object into a dictionary.
+    Returns None if the user is None.
+    """
+    if user is None:
+        return None
 
-        # If role is 'Professor', include courses taught
-        if user.role == 'Professor':
-            user_data["courses_teaching"] = [
-                serialize_course(course)
-                for course in user.courses_created
-            ]
+    # Build the serialized dictionary. You can adjust the date formatting as needed.
+    serialized = {
+        "id": str(user.id),
+        "name": user.name,
+        "email": user.email,
+        "role": user.role,
+        "created_at": user.created_at.isoformat() if hasattr(user, "created_at") and user.created_at else None,
+        "updated_at": user.updated_at.isoformat() if hasattr(user, "updated_at") and user.updated_at else None,
+    }
 
-        # If role is 'Student', include courses the student is enrolled in
-        if user.role == 'Student':
-            user_data["courses_enrolled"] = [
-                enrollment.course_id for enrollment in user.enrollments
-            ]
+    if hasattr(user, "courses_enrolled"):
+        serialized["courses_enrolled"] = [
+            serialize_course(course) for course in user.courses_enrolled
+        ]
+    elif hasattr(user, "courses_teaching"):
+        serialized["courses_teaching"] = [
+            serialize_course(course) for course in user.courses_teaching
+        ]
+    else:
+        serialized["courses_enrolled"] = []
 
-        logger.debug(f"User serialized: {user_data}")
+    logger.debug(f"User serialized: {serialized}")
+    return serialized
+
 def serialize_grade(grade: Grade) -> Dict[str, Any]:
     """
     Serializes a Grade object into a dictionary for API responses.
@@ -75,6 +78,7 @@ def serialize_grade(grade: Grade) -> Dict[str, Any]:
         'course_id': grade.course_id,
         'student_id': grade.student_id,
         'grade': grade.grade,
+        'name': grade.name,
         'created_at': grade.created_at.isoformat(),
         'updated_at': grade.updated_at.isoformat()
     }

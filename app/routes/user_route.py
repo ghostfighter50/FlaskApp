@@ -1,5 +1,3 @@
-# app/routes/user_routes.py
-
 import logging
 from flask import Blueprint
 from ..controllers.user_controller import UserController

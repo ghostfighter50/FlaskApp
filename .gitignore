@@ -1,2 +1,3 @@
 /venv
-*.pyc
+/app/logs
+__pycache__

@@ -1,5 +1,3 @@
-# app/routes/auth_routes.py
-
 import logging
 from flask import Blueprint
 from ..controllers.auth_controller import AuthController
@@ -12,6 +10,6 @@ auth_controller = AuthController()
 
 auth_bp.route('/register', methods=['POST'])(auth_controller.register)
 auth_bp.route('/login', methods=['POST'])(auth_controller.login)
-auth_bp.route('/profile', methods=['POST'])(auth_controller.profile)
 auth_bp.route('/change-password', methods=['POST'])(auth_controller.change_password)
+
 logger.debug("Authentication routes have been registered.")

@@ -1,0 +1,1285 @@
+openapi: 3.0.3
+info:
+  title: University API
+  version: "1.0.0"
+  description: >
+    API for user authentication, course management, grade management, and user management.
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Local development server
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: >
+        **Requires JWT authentication.** Only administrators can register new users.
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: User registration details.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - role
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+                password:
+                  type: string
+                  example: "Secret123!"
+                role:
+                  type: string
+                  enum: [Administrator, Professor, Student]
+                  example: Student
+      responses:
+        "200":
+          description: User created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User created
+                  id:
+                    type: string
+                    example: "12345"
+        "400":
+          description: Missing fields or validation error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: Unauthorized (user not logged in or lacks permission).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "409":
+          description: Conflict (e.g. email already in use).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate a user and generate an access token
+      description: >
+        Returns a JWT access token and the authenticated user's details.
+      requestBody:
+        description: Login credentials.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+                password:
+                  type: string
+                  example: "Secret123!"
+      responses:
+        "200":
+          description: Login successful.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                  user:
+                    $ref: '#/components/schemas/User'
+        "400":
+          description: Missing credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "401":
+          description: Invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Authentication failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/change-password:
+    post:
+      tags:
+        - Authentication
+      summary: Change a user's password
+      description: >
+        **Requires JWT authentication.** Change password for an existing user.
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: JSON payload with email, current password, and new password.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - new_password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+                password:
+                  type: string
+                  example: "Secret123!"
+                new_password:
+                  type: string
+                  example: "NewSecret123!"
+      responses:
+        "200":
+          description: Password updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password updated successfully
+        "400":
+          description: Missing fields or new password validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "401":
+          description: Incorrect current password.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/:
+    get:
+      tags:
+        - Users
+      summary: List all users
+      description: >
+        **Requires JWT authentication.** Only Administrators can list all users.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of users returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Users
+      summary: Create a new user
+      description: >
+        **Requires JWT authentication.** Only Administrators can create new users.
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: User creation payload.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - role
+              properties:
+                name:
+                  type: string
+                  example: Jane Doe
+                email:
+                  type: string
+                  format: email
+                  example: jane.doe@example.com
+                password:
+                  type: string
+                  example: "Password123!"
+                role:
+                  type: string
+                  enum: [Student, Professor]
+                  example: Student
+      responses:
+        "200":
+          description: User created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: User created successfully.
+                  user:
+                    $ref: '#/components/schemas/User'
+        "400":
+          description: Missing fields or invalid role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "409":
+          description: User already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/search:
+    get:
+      tags:
+        - Users
+      summary: Search for users
+      description: >
+        **Requires JWT authentication.** Only Administrators can search users.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+          description: The search string.
+      responses:
+        "200":
+          description: A list of matching users.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{user_id}:
+    get:
+      tags:
+        - Users
+      summary: Get user details
+      description: >
+        **Requires JWT authentication.** Accessible by Admins, Professors, or the user themselves.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the user.
+      responses:
+        "200":
+          description: User details retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Users
+      summary: Update a user
+      description: >
+        **Requires JWT authentication.** Accessible by the user themselves or an Administrator.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the user.
+      requestBody:
+        description: Fields to update (name, email, password).
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: John Doe Updated
+                email:
+                  type: string
+                  format: email
+                  example: john.updated@example.com
+                password:
+                  type: string
+                  example: "NewPassword123!"
+      responses:
+        "200":
+          description: User updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: User updated successfully.
+                  user:
+                    $ref: '#/components/schemas/User'
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Users
+      summary: Delete a user
+      description: >
+        **Requires JWT authentication.** Only Administrators can delete users.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the user.
+      responses:
+        "200":
+          description: User deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: User deleted successfully.
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /courses/:
+    get:
+      tags:
+        - Courses
+      summary: List courses
+      description: >
+        **Requires JWT authentication.** Retrieve a paginated list of courses.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: The current page number.
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            default: 10
+          description: The number of courses per page.
+      responses:
+        "200":
+          description: Courses retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  courses:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Course'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      per_page:
+                        type: integer
+                      total_pages:
+                        type: integer
+                      total_items:
+                        type: integer
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Courses
+      summary: Create a new course
+      description: >
+        **Requires JWT authentication.** Only Administrators or Professors can create a course.
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Course creation payload.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: Introduction to Programming
+      responses:
+        "200":
+          description: Course created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Course created successfully.
+                  course:
+                    $ref: '#/components/schemas/Course'
+        "400":
+          description: Missing course name.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /courses/{course_id}:
+    get:
+      tags:
+        - Courses
+      summary: Get course details
+      description: >
+        **Requires JWT authentication.** Retrieve details of a specific course.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: course_id
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the course.
+      responses:
+        "200":
+          description: Course details returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  course:
+                    $ref: '#/components/schemas/Course'
+        "404":
+          description: Course not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Courses
+      summary: Update a course
+      description: >
+        **Requires JWT authentication.** Only Administrators or the assigned Professor may update the course.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: course_id
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the course.
+      requestBody:
+        description: JSON payload with the new course name.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: Advanced Programming
+      responses:
+        "200":
+          description: Course updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Course updated successfully.
+                  course:
+                    $ref: '#/components/schemas/Course'
+        "400":
+          description: Missing course name.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Course not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Courses
+      summary: Delete a course
+      description: >
+        **Requires JWT authentication.** Only Administrators can delete courses.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: course_id
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the course.
+      responses:
+        "200":
+          description: Course deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Course deleted successfully.
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Course not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /courses/search:
+    get:
+      tags:
+        - Courses
+      summary: Search courses by name
+      description: >
+        **Requires JWT authentication.** Search courses based on a partial name query.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: The search string to match course names.
+      responses:
+        "200":
+          description: A list of matching courses.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  courses:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Course'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /courses/join:
+    post:
+      tags:
+        - Courses
+      summary: Join a course
+      description: >
+        **Requires JWT authentication.** Only students can enroll in courses.
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: JSON payload with course_id.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - course_id
+              properties:
+                course_id:
+                  type: string
+                  example: "course123"
+      responses:
+        "200":
+          description: Joined course successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Joined course successfully.
+        "400":
+          description: Missing course ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: Unauthorized (non-students cannot join courses).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Course not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "409":
+          description: Already enrolled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /courses/leave:
+    post:
+      tags:
+        - Courses
+      summary: Leave a course
+      description: >
+        **Requires JWT authentication.** Only students can leave courses.
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: JSON payload with course_id.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - course_id
+              properties:
+                course_id:
+                  type: string
+                  example: "course123"
+      responses:
+        "200":
+          description: Left course successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Left course successfully.
+        "400":
+          description: Missing course ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: Unauthorized (non-students cannot leave courses).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Not enrolled in this course.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /grades/:
+    get:
+      tags:
+        - Grades
+      summary: List all grades
+      description: >
+        **Requires JWT authentication.** Only Professors or Administrators can list grades.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Grades retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  grades:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Grade'
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Grades
+      summary: Assign a grade
+      description: >
+        **Requires JWT authentication.** Only Professors or Administrators can assign grades.
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: JSON payload to assign a grade.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - course_id
+                - student_id
+                - grade
+                - grade_name
+              properties:
+                course_id:
+                  type: string
+                  example: "course123"
+                student_id:
+                  type: string
+                  example: "student123"
+                grade:
+                  type: number
+                  example: 95
+                grade_name:
+                  type: string
+                  example: "Midterm Exam"
+      responses:
+        "200":
+          description: Grade assigned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Grade assigned successfully.
+                  grade:
+                    $ref: '#/components/schemas/Grade'
+        "400":
+          description: Missing required fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Course or student not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /grades/{grade_id}:
+    get:
+      tags:
+        - Grades
+      summary: Get a specific grade
+      description: >
+        **Requires JWT authentication.** Professors and Administrators can retrieve a specific grade.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: grade_id
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the grade.
+      responses:
+        "200":
+          description: Grade details returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  grade:
+                    $ref: '#/components/schemas/Grade'
+        "403":
+          description: Unauthorized access (Students are not allowed).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Grade not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Grades
+      summary: Update a grade
+      description: >
+        **Requires JWT authentication.** Only Professors or Administrators can update a grade.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: grade_id
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the grade.
+      requestBody:
+        description: JSON payload with the new grade value.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - grade
+              properties:
+                grade:
+                  type: number
+                  example: 98
+      responses:
+        "200":
+          description: Grade updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Grade updated successfully.
+                  grade:
+                    $ref: '#/components/schemas/Grade'
+        "400":
+          description: Missing grade value.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Grade not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Grades
+      summary: Delete a grade
+      description: >
+        **Requires JWT authentication.** Only Administrators can delete a grade.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: grade_id
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the grade.
+      responses:
+        "200":
+          description: Grade deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Grade deleted successfully.
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Grade not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /grades/courses/{course_id}/students/{student_id}/grades:
+    get:
+      tags:
+        - Grades
+      summary: Get all grades for a student in a course
+      description: >
+        **Requires JWT authentication.** Only Professors or Administrators can view a student's grades for a specific course.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: course_id
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the course.
+        - in: path
+          name: student_id
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the student.
+      responses:
+        "200":
+          description: Grades retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  grades:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Grade'
+        "403":
+          description: Unauthorized access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Course or student not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "user123"
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        role:
+          type: string
+          enum: [Administrator, Professor, Student]
+          example: Student
+    Course:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "course123"
+        name:
+          type: string
+          example: Introduction to Programming
+        professor_id:
+          type: string
+          example: "prof123"
+    Grade:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "grade123"
+        course_id:
+          type: string
+          example: "course123"
+        student_id:
+          type: string
+          example: "student123"
+        grade:
+          type: number
+          example: 95
+        grade_name:
+          type: string
+          example: Midterm Exam
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error message"
+      required:
+        - error

@@ -1,5 +1,3 @@
-# app/routes/course_routes.py
-
 import logging
 from flask import Blueprint
 from ..controllers.course_controller import CourseController

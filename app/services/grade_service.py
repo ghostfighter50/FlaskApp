@@ -1,143 +1,113 @@
 import logging
-from typing import List, Optional, Dict, Any
-from ..config.models import Grade
-from ..config.database import db
+from typing import List, Optional
+from app import db
+from app.config.models import Grade
 
 logger = logging.getLogger(__name__)
 
 class GradeService:
     """
-    Service class for managing grade operations, including retrieving,
-    creating, updating, and deleting grades.
+    Service class encapsulating database operations related to the Grade model.
+    Provides functionality for creating, retrieving, updating, and deleting grades,
+    as well as querying grades for specific students and courses.
     """
 
-    @staticmethod
-    def get_all_grades() -> List[Grade]:
+    def list_grades(self) -> List[Grade]:
         """
         Retrieves all grades from the database.
 
         Returns:
-            List[Grade]: A list of all Grade objects.
+            List[Grade]: A list of all Grade objects in the database.
         """
-        logger.debug("Fetching all grades from the database.")
-        grades: List[Grade] = db.session.query(Grade).all()
-        logger.info(f"Retrieved {len(grades)} grades from the database.")
+        logger.debug("Retrieving all grades from the database.")
+        grades = db.session.query(Grade).all()
+        logger.info(f"Retrieved {len(grades)} grades.")
         return grades
 
-    @staticmethod
-    def get_grade_by_id(grade_id: str) -> Optional[Grade]:
+    def get_grade_by_id(self, grade_id: str) -> Optional[Grade]:
         """
-        Retrieves a specific grade by its unique ID.
+        Retrieves a grade by its unique ID.
 
         Args:
             grade_id (str): The unique identifier of the grade.
 
         Returns:
-            Optional[Grade]: The Grade object if found, otherwise None.
+            Optional[Grade]: The Grade object if found, else None.
         """
-        logger.debug(f"Fetching grade by ID: {grade_id}")
-        grade: Optional[Grade] = db.session.get(Grade, grade_id)
+        logger.debug(f"Fetching grade with ID: {grade_id}")
+        grade = db.session.get(Grade, grade_id)
         if grade:
-            logger.debug(f"Grade found: {grade.id}")
+            logger.debug(f"Grade found: {grade.id}, Grade Value: {grade.grade}")
         else:
             logger.debug(f"No grade found with ID: {grade_id}")
         return grade
 
-    @staticmethod
-    def assign_grade(course_id: str, student_id: str, grade_value: float) -> Grade:
+    def assign_grade(self, student_id: str, course_id: str, grade_value: float, grade_name: str) -> Grade:
         """
-        Assigns a new grade to a student in a specific course.
+        Assigns a grade to a student for a specific course.
 
         Args:
-            course_id (str): The ID of the course.
-            student_id (str): The ID of the student.
-            grade_value (float): The numeric value of the grade.
+            student_id (str): The unique identifier of the student.
+            course_id (str): The unique identifier of the course.
+            grade_value (float): The grade value to be assigned.
+            grade_name (str): The name of the grade (e.g., "Final Exam", "Midterm").
 
         Returns:
             Grade: The newly created Grade object.
         """
         logger.debug(f"Assigning grade {grade_value} to student {student_id} for course {course_id}.")
         new_grade = Grade(
-            course_id=course_id,
             student_id=student_id,
-            value=grade_value
+            course_id=course_id,
+            grade=grade_value,
+            name=grade_name
         )
         db.session.add(new_grade)
         db.session.commit()
-        logger.info(f"Grade assigned successfully with ID: {new_grade.id}")
+        logger.info(f"Grade assigned: {new_grade.id}, Value: {new_grade.grade}")
         return new_grade
 
-    @staticmethod
-    def update_grade(grade: Grade, grade_value: float) -> Grade:
+    def update_grade(self, grade_obj: Grade, new_grade_value: float) -> Grade:
         """
-        Updates the value of an existing grade.
+        Updates an existing grade's value.
 
         Args:
-            grade (Grade): The Grade object to update.
-            grade_value (float): The new numeric value for the grade.
+            grade_obj (Grade): The Grade object to update.
+            new_grade_value (float): The new grade value.
 
         Returns:
             Grade: The updated Grade object.
         """
-        logger.debug(f"Updating grade ID: {grade.id} to new value: {grade_value}")
-        grade.value = grade_value
+        logger.debug(f"Updating grade ID: {grade_obj.id} to new value: {new_grade_value}.")
+        grade_obj.grade = new_grade_value
         db.session.commit()
-        logger.info(f"Grade ID: {grade.id} updated successfully.")
-        return grade
+        logger.info(f"Grade ID: {grade_obj.id} updated to value: {new_grade_value}.")
+        return grade_obj
 
-    @staticmethod
-    def delete_grade(grade: Grade) -> None:
+    def delete_grade(self, grade_obj: Grade) -> None:
         """
-        Deletes a grade from the database.
+        Deletes a grade record from the database.
 
         Args:
-            grade (Grade): The Grade object to delete.
+            grade_obj (Grade): The Grade object to be deleted.
         """
-        logger.debug(f"Deleting grade ID: {grade.id}")
-        db.session.delete(grade)
+        logger.debug(f"Deleting grade ID: {grade_obj.id}.")
+        db.session.delete(grade_obj)
         db.session.commit()
-        logger.info(f"Grade ID: {grade.id} deleted successfully.")
+        logger.info(f"Grade ID: {grade_obj.id} deleted successfully.")
 
-    @staticmethod
-    def get_grades_by_course_and_student(course_id: str, student_id: str) -> List[Grade]:
+    def get_student_grades(self, course_id: str, student_id: str) -> List[Grade]:
         """
-        Retrieves all grades for a specific student within a specific course.
+        Retrieves all grades for a specific student within a given course.
 
         Args:
-            course_id (str): The ID of the course.
-            student_id (str): The ID of the student.
+            course_id (str): The unique identifier of the course.
+            student_id (str): The unique identifier of the student.
 
         Returns:
-            List[Grade]: A list of Grade objects.
+            List[Grade]: A list of Grade objects for the specified student and course.
         """
-        logger.debug(f"Fetching grades for student {student_id} in course {course_id}.")
-        grades: List[Grade] = (
-            db.session.query(Grade)
-            .filter_by(course_id=course_id, student_id=student_id)
-            .all()
-        )
-        logger.info(f"Retrieved {len(grades)} grades for student {student_id} in course {course_id}.")
+        logger.debug(f"Fetching grades for student ID: {student_id} in course ID: {course_id}.")
+        grades = db.session.query(Grade).filter_by(course_id=course_id, student_id=student_id).all()
+        logger.info(f"Retrieved {len(grades)} grades for student ID: {student_id} in course ID: {course_id}.")
         return grades
-
-    @staticmethod
-    def serialize_grade(grade: Grade) -> Dict[str, Any]:
-        """
-        Serializes a Grade object into a dictionary for API responses.
-
-        Args:
-            grade (Grade): The Grade object to serialize.
-
-        Returns:
-            Dict[str, Any]: A dictionary representation of the grade.
-        """
-        logger.debug(f"Serializing grade ID: {grade.id}")
-        grade_data = {
-            "id": grade.id,
-            "course_id": grade.course_id,
-            "student_id": grade.student_id,
-            "value": grade.value,
-            "created_at": grade.created_at.isoformat() if grade.created_at else None,
-            "updated_at": grade.updated_at.isoformat() if grade.updated_at else None
-        }
-        logger.debug(f"Grade serialized: {grade_data}")
-        return grade_data
