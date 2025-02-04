@@ -77,7 +77,6 @@ pip install -r requirements.txt
 ### Set Up the Database
 
 - Update your database connection string in the configuration.
-- Run migration commands if applicable to set up the schema.
 
 ## Configuration
 
