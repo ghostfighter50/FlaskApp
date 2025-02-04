@@ -46,7 +46,7 @@ This API is designed for university environments, offering secure endpoints to m
 - **Backend Framework:** Flask
 - **Authentication:** Flask-JWT-Extended
 - **API Documentation:** OpenAPI 3.0 (Swagger/OpenAPI Specification)
-- **Database:** SQLAlchemy (assumed based on implementation)
+- **Database:** MySQL
 - **Logging:** Python logging module
 
 ## Installation
