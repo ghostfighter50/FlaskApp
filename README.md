@@ -20,24 +20,24 @@ This API is designed for university environments, offering secure endpoints to m
 
 ## Features
 
-- **User Authentication:**  
+- **User Authentication:**
     - Login using JWT tokens
     - User registration (initiated by administrators)
     - Password change functionality
 
-- **User Management:**  
+- **User Management:**
     - Administrators can list, search, create, update, and delete users.
     - Professors and individual users have tailored access to user information.
 
-- **Course Management:**  
+- **Course Management:**
     - Create, update, and delete courses (for Administrators and Professors).
     - All authenticated users can search and view course listings.
 
-- **Enrollment:**  
+- **Enrollment:**
     - Students can join or leave courses.
     - Professors and administrators can review all students enrolled in a course.
 
-- **Grade Management:**  
+- **Grade Management:**
     - Professors and Administrators can assign, update, list, and delete student grades.
     - Retrieve grade reports per student for a specific course.
 
@@ -99,7 +99,7 @@ Start the API with the following command:
 python ./run.py
 ```
 
-The API will run at:  
+The API will run at:
 http://localhost:5000/api/v1
 
 ### Authentication

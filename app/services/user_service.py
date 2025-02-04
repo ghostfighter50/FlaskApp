@@ -5,6 +5,7 @@ from ..config.database import db
 
 logger = logging.getLogger(__name__)
 
+
 class UserService:
     """
     Service class for managing user-related operations, including:

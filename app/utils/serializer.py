@@ -1,35 +1,34 @@
 from typing import Any, Dict
-from app.config.models import Course, Grade, User
+from app.config.models import Course, Grade
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 def serialize_course(course: Course) -> Dict[str, Any]:
-        """
-        Serializes a Course object into a dictionary for API responses.
+    """
+    Serializes a Course object into a dictionary for API responses.
 
-        Args:
-            course (Course): The Course object to serialize.
+    Args:
+        course (Course): The Course object to serialize.
 
-        Returns:
-            Dict[str, Any]: A dictionary representation of the course.
-        """
-        logger.debug(f"Serializing course ID: {course.id}")
-        course_data = {
-            'id': course.id,
-            'name': course.name,
-            'professor_id': course.professor_id,
-            'created_at': course.created_at.isoformat(),
-            'updated_at': course.updated_at.isoformat()
-        }
-        logger.debug(f"Course serialized: {course_data}")
-        return course_data
+    Returns:
+        Dict[str, Any]: A dictionary representation of the course.
+    """
+    logger.debug(f"Serializing course ID: {course.id}")
+    course_data = {
+        'id': course.id,
+        'name': course.name,
+        'professor_id': course.professor_id,
+        'created_at': course.created_at.isoformat(),
+        'updated_at': course.updated_at.isoformat()
+    }
+    logger.debug(f"Course serialized: {course_data}")
+    return course_data
 
-
-# app/utils/serizializer.py
-import logging
 
 logger = logging.getLogger(__name__)
+
 
 def serialize_user(user):
     """
@@ -63,6 +62,7 @@ def serialize_user(user):
     logger.debug(f"User serialized: {serialized}")
     return serialized
 
+
 def serialize_grade(grade: Grade) -> Dict[str, Any]:
     """
     Serializes a Grade object into a dictionary for API responses.
@@ -83,4 +83,4 @@ def serialize_grade(grade: Grade) -> Dict[str, Any]:
         'updated_at': grade.updated_at.isoformat()
     }
     logger.debug(f"Grade serialized: {grade_data}")
-    return grade_data       
+    return grade_data

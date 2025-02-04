@@ -5,6 +5,7 @@ from app.config.models import Grade
 
 logger = logging.getLogger(__name__)
 
+
 class GradeService:
     """
     Service class encapsulating database operations related to the Grade model.

@@ -9,6 +9,7 @@ from ..services.user_service import UserService
 
 logger = logging.getLogger(__name__)
 
+
 class CourseController:
     """
     Controller for managing course operations such as listing, searching,
@@ -117,7 +118,15 @@ class CourseController:
             Tuple[Dict[str, Any], int]: A list of students or an error message.
         """
         current_user_id: Optional[str] = get_jwt_identity()
+        if not current_user_id:
+            logger.warning("JWT identity not found.")
+            return jsonify({'msg': 'Unauthorized, token missing or invalid.'}), 401
+
         current_user = self.user_service.get_user_by_id(current_user_id)
+        if not current_user:
+            logger.warning(f"User not found for ID: {current_user_id}")
+            return jsonify({'msg': 'User not found.'}), 404
+
         if current_user.role not in ['Administrator', 'Professor']:
             logger.warning(f"Unauthorized access attempt by user ID: {current_user_id}")
             return jsonify({'msg': 'Unauthorized access.'}), 403
@@ -150,7 +159,15 @@ class CourseController:
             Tuple[Dict[str, Any], int]: The created course information or an error message.
         """
         current_user_id: Optional[str] = get_jwt_identity()
+        if not current_user_id:
+            logger.warning("JWT identity not found.")
+            return jsonify({'msg': 'Unauthorized, token missing or invalid.'}), 401
+
         current_user = self.user_service.get_user_by_id(current_user_id)
+        if not current_user:
+            logger.warning(f"User not found for ID: {current_user_id}")
+            return jsonify({'msg': 'User not found.'}), 404
+
         if current_user.role not in ['Administrator', 'Professor']:
             logger.warning(f"Unauthorized course creation attempt by user ID: {current_user_id}")
             return jsonify({'msg': 'Unauthorized access.'}), 403
@@ -190,7 +207,14 @@ class CourseController:
             Tuple[Dict[str, Any], int]: The updated course data or an error message.
         """
         current_user_id: Optional[str] = get_jwt_identity()
+        if not current_user_id:
+            logger.warning("JWT identity not found.")
+            return jsonify({'msg': 'Unauthorized, token missing or invalid.'}), 401
+
         current_user = self.user_service.get_user_by_id(current_user_id)
+        if not current_user:
+            logger.warning(f"User not found for ID: {current_user_id}")
+            return jsonify({'msg': 'User not found.'}), 404
 
         try:
             course = self.course_service.get_course_by_id(course_id)
@@ -198,6 +222,7 @@ class CourseController:
                 logger.warning(f"Course not found: ID {course_id}")
                 return jsonify({'msg': 'Course not found.'}), 404
 
+            # Only Administrators or the assigned Professor can update the course.
             if current_user.role not in ['Administrator', 'Professor'] and course.professor_id != current_user.id:
                 logger.warning(f"Unauthorized course update attempt by user ID: {current_user_id}")
                 return jsonify({'msg': 'Unauthorized access.'}), 403
@@ -233,7 +258,15 @@ class CourseController:
             Tuple[Dict[str, Any], int]: A success message or an error message.
         """
         current_user_id: Optional[str] = get_jwt_identity()
+        if not current_user_id:
+            logger.warning("JWT identity not found.")
+            return jsonify({'msg': 'Unauthorized, token missing or invalid.'}), 401
+
         current_user = self.user_service.get_user_by_id(current_user_id)
+        if not current_user:
+            logger.warning(f"User not found for ID: {current_user_id}")
+            return jsonify({'msg': 'User not found.'}), 404
+
         if current_user.role != 'Administrator':
             logger.warning(f"Unauthorized course deletion attempt by user ID: {current_user_id}")
             return jsonify({'msg': 'Unauthorized access.'}), 403
@@ -266,7 +299,15 @@ class CourseController:
             Tuple[Dict[str, Any], int]: A success message or an error message.
         """
         current_user_id: Optional[str] = get_jwt_identity()
+        if not current_user_id:
+            logger.warning("JWT identity not found.")
+            return jsonify({'msg': 'Unauthorized, token missing or invalid.'}), 401
+
         current_user = self.user_service.get_user_by_id(current_user_id)
+        if not current_user:
+            logger.warning(f"User not found for ID: {current_user_id}")
+            return jsonify({'msg': 'User not found.'}), 404
+
         if current_user.role != 'Student':
             logger.warning(f"Non-student user ID: {current_user_id} attempted to join a course.")
             return jsonify({'msg': 'Only students can join courses.'}), 403
@@ -309,7 +350,15 @@ class CourseController:
             Tuple[Dict[str, Any], int]: A success message or an error message.
         """
         current_user_id: Optional[str] = get_jwt_identity()
+        if not current_user_id:
+            logger.warning("JWT identity not found.")
+            return jsonify({'msg': 'Unauthorized, token missing or invalid.'}), 401
+
         current_user = self.user_service.get_user_by_id(current_user_id)
+        if not current_user:
+            logger.warning(f"User not found for ID: {current_user_id}")
+            return jsonify({'msg': 'User not found.'}), 404
+
         if current_user.role != 'Student':
             logger.warning(f"Non-student user ID: {current_user_id} attempted to leave a course.")
             return jsonify({'msg': 'Only students can leave courses.'}), 403

@@ -8,6 +8,7 @@ from ..services.user_service import UserService
 
 logger = logging.getLogger(__name__)
 
+
 class UserController:
     """
     Controller for handling user management operations:

@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict, Tuple, Optional, List
 
-from flask import request, jsonify
+from flask import request
 from flask_jwt_extended import (
     create_access_token,
     jwt_required,
@@ -11,9 +11,9 @@ from app.utils.serializer import serialize_user
 from app.utils.validators import validate_email, validate_password
 from app.services.auth_service import AuthService
 from app.services.user_service import UserService
-from app.services.course_service import CourseService
 
 logger = logging.getLogger(__name__)
+
 
 class AuthController:
     """

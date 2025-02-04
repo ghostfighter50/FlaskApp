@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 jwt = JWTManager()
 
+
 def register_auth_middleware(app: Flask) -> None:
     """
     Registers the JWT authentication middleware with the Flask app.
@@ -18,7 +19,7 @@ def register_auth_middleware(app: Flask) -> None:
     """
     jwt.init_app(app)
     logger.debug("JWT Manager initialized and attached to the Flask app.")
-    
+
     @jwt.unauthorized_loader
     def unauthorized_response(callback: Any) -> tuple:
         """

@@ -1,8 +1,9 @@
 import logging
-from flask import Flask, jsonify, Request
+from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
 
 logger = logging.getLogger(__name__)
+
 
 def register_error_handlers(app: Flask) -> None:
     """
@@ -13,7 +14,7 @@ def register_error_handlers(app: Flask) -> None:
     Args:
         app (Flask): The Flask application instance.
     """
-    
+
     @app.errorhandler(400)
     def bad_request(error: Exception) -> tuple:
         """

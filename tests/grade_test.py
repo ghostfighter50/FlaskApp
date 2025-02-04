@@ -1,9 +1,8 @@
 def test_list_grades_unauthorized(client, student_token):
     headers = {"Authorization": f"Bearer {student_token}"}
     response = client.get("/api/v1/grades/", headers=headers)
-    
-    assert response.status_code == 403
 
+    assert response.status_code == 403
 
 
 def test_list_grades(client, professor_token):
@@ -20,9 +19,8 @@ def test_assign_grade_missing_fields(client, professor_token):
     payload = {}  # Missing fields
 
     response = client.post("/api/v1/grades/", json=payload, headers=headers)
-    
-    assert response.status_code == 400
 
+    assert response.status_code == 400
 
 
 def test_assign_grade_invalid_student(client, professor_token, course_id):
@@ -34,7 +32,6 @@ def test_assign_grade_invalid_student(client, professor_token, course_id):
     assert response.status_code == 404
 
 
-
 def test_assign_grade_invalid_course(client, professor_token, student_id):
     headers = {"Authorization": f"Bearer {professor_token}"}
     payload = {"course_id": "invalid_course_id", "student_id": student_id, "grade": 85, "grade_name": "DM"}
@@ -42,7 +39,6 @@ def test_assign_grade_invalid_course(client, professor_token, student_id):
     response = client.post("/api/v1/grades/", json=payload, headers=headers)
 
     assert response.status_code == 404
-
 
 
 def test_assign_grade_success(client, professor_token, course_id, student_id):
@@ -63,7 +59,6 @@ def test_get_grade_unauthorized(client, student_token, grade_id):
     assert response.status_code == 403
 
 
-
 def test_get_grade_success(client, professor_token, grade_id):
     headers = {"Authorization": f"Bearer {professor_token}"}
     response = client.get(f"/api/v1/grades/{grade_id}", headers=headers)
@@ -81,7 +76,6 @@ def test_update_grade_unauthorized(client, student_token, grade_id):
     assert response.status_code == 403
 
 
-
 def test_update_grade_missing_fields(client, professor_token, grade_id):
     headers = {"Authorization": f"Bearer {professor_token}"}
     payload = {}  # Missing 'grade'
@@ -91,7 +85,6 @@ def test_update_grade_missing_fields(client, professor_token, grade_id):
     assert response.status_code == 400
 
 
-
 def test_update_grade_success(client, professor_token, grade_id):
     headers = {"Authorization": f"Bearer {professor_token}"}
     payload = {"grade": 95}
@@ -99,7 +92,6 @@ def test_update_grade_success(client, professor_token, grade_id):
     response = client.put(f"/api/v1/grades/{grade_id}", json=payload, headers=headers)
 
     assert response.status_code == 200
-
 
 
 def test_get_student_grades(client, professor_token, course_id, student_id):
@@ -118,10 +110,8 @@ def test_delete_grade_unauthorized(client, professor_token, grade_id):
     assert response.status_code == 403
 
 
-
 def test_delete_grade_admin(client, admin_token, grade_id):
     headers = {"Authorization": f"Bearer {admin_token}"}
     response = client.delete(f"/api/v1/grades/{grade_id}", headers=headers)
 
     assert response.status_code == 200
-

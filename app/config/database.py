@@ -6,12 +6,13 @@ from sqlalchemy.exc import SQLAlchemyError
 db = SQLAlchemy()
 logger = logging.getLogger(__name__)
 
+
 def initialize_database() -> bool:
     """
     Initializes the database by checking if MySQL is running and can be connected to.
 
     This function attempts to establish a connection to the database and logs the result.
-    
+
     Returns:
         bool: True if the connection was successful, False if an error occurred.
     """

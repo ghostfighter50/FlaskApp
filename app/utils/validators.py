@@ -1,5 +1,6 @@
 import re
 
+
 def validate_password(password):
     """
     Validate the password with the following rules:
@@ -19,6 +20,7 @@ def validate_password(password):
     if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
         return False
     return True
+
 
 def validate_email(email):
     """

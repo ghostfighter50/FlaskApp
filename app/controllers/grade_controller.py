@@ -9,6 +9,7 @@ from ..services.course_service import CourseService
 
 logger = logging.getLogger(__name__)
 
+
 class GradeController:
     """
     Controller for handling grade-related operations:

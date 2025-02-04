@@ -3,17 +3,18 @@ import os
 from flask import Flask
 from logging.handlers import RotatingFileHandler
 
+
 def configure_logging(app: Flask) -> None:
     """
     This function sets up logging for the Flask application by configuring both console and file handlers.
     It ensures that log messages are formatted consistently and handles log rotation for file logs.
-    
+
     Args:
         app (Flask): The Flask application instance for which logging is being configured.
-    
+
     Raises:
         OSError: If the log directory cannot be created or the file handler cannot be set up.
-    
+
     Notes:
         - The log level is determined by the "LOG_LEVEL" configuration value, defaulting to "DEBUG".
         - The log directory is determined by the "LOG_DIR" configuration value, defaulting to a "logs" directory within the app's root path.
@@ -57,6 +58,7 @@ def configure_logging(app: Flask) -> None:
         app_logger.error(f"Failed to create log directory or file handler: {e}")
 
     app_logger.info("Logging has been configured via configure_logging.")
+
 
 # Optional: also define get_logger if you want module-specific loggers
 def get_logger(module_name: str) -> logging.Logger:

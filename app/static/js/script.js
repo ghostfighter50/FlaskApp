@@ -8,4 +8,3 @@ function toggleInterface(target) {
         wrapper.style.transform = 'translateX(-66.66%)';
     }
 }
-

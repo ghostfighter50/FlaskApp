@@ -1,5 +1,6 @@
 import os
 
+
 class Config:
     ENV = os.getenv('FLASK_ENV', 'production')
     ENABLE_TALISMAN = os.getenv('ENABLE_TALISMAN', True)

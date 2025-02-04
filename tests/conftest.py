@@ -1,10 +1,8 @@
-import json
-import jwt
 import pytest
-from flask import Flask
-from flask_jwt_extended import create_access_token, get_jwt_identity
+from flask_jwt_extended import create_access_token
 from app import create_app, db
 from app.config.models import Course, Grade, User
+
 
 @pytest.fixture()
 def app():
@@ -17,7 +15,7 @@ def app():
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",  # Use an in-memory database for tests
         "SQLALCHEMY_TRACK_MODIFICATIONS": False
     })
-    
+
     with app.app_context():
         db.drop_all()
         db.create_all()
@@ -53,34 +51,41 @@ def app():
         app.grade_id = grade.id
 
         yield app
-    
+
         db.session.remove()
         db.drop_all()
+
 
 @pytest.fixture
 def client(app):
     return app.test_client()
 
+
 @pytest.fixture
 def admin_token(app):
     return create_access_token(identity=app.admin_id)
+
 
 @pytest.fixture
 def professor_token(app):
     return create_access_token(identity=app.professor_id)
 
+
 @pytest.fixture
 def student_token(app):
     return create_access_token(identity=app.student_id)
+
 
 @pytest.fixture()
 def course_id(app):
     print(f"course_id: {app.course_id}")
     return app.course_id
 
+
 @pytest.fixture()
 def student_id(app):
     return app.student_id
+
 
 @pytest.fixture()
 def professor_id(app):

@@ -1,7 +1,7 @@
 def test_list_courses(client, student_token):
     headers = {"Authorization": f"Bearer {student_token}"}
     response = client.get("/api/v1/courses/", headers=headers)
-    
+
     assert response.status_code == 200
     assert "courses" in response.json
     assert isinstance(response.json["courses"], list)
@@ -52,14 +52,13 @@ def test_update_course(client, professor_token, course_id):
 
 def test_delete_course_unauthorized(client, professor_token, course_id):
     headers = {"Authorization": f"Bearer {professor_token}"}
-    
+
     response = client.delete(f"/api/v1/courses/{course_id}", headers=headers)
     assert response.status_code == 403
 
 
 def test_delete_course_admin(client, admin_token, course_id):
     headers = {"Authorization": f"Bearer {admin_token}"}
-    
+
     response = client.delete(f"/api/v1/courses/{course_id}", headers=headers)
     assert response.status_code == 200
-
