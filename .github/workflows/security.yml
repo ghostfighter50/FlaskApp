@@ -1,0 +1,51 @@
+name: OWASP ZAP Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  security-scan:
+    name: Run OWASP ZAP Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Start Flask app
+        run: |
+          nohup python run.py &
+        env:
+          FLASK_APP: app.py
+          FLASK_ENV: development
+          FLASK_RUN_PORT: 8080
+
+      - name: Install OWASP ZAP
+        run: |
+          sudo apt-get update
+          sudo apt-get install zaproxy
+
+      - name: Run OWASP ZAP Scan
+        run: |
+          zap-baseline.py -t http://localhost:8080 -g gen.conf -r zap_report.html
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: zap-report
+          path: zap_report.html
