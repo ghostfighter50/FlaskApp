@@ -1,4 +1,5 @@
 import os
+from cryptography.fernet import Fernet
 
 
 class Config:
@@ -17,3 +18,5 @@ class Config:
 
     SQLALCHEMY_DATABASE_URI = f"mysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY', Fernet.generate_key().decode('utf-8'))

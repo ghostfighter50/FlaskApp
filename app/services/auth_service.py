@@ -20,22 +20,22 @@ class AuthService:
         """
         Authenticate a user by verifying the provided email and password.
 
-        This method retrieves the user via the UserService and uses the
-        user's own password checking method to verify credentials.
-
         Args:
-            email (str): The user's email.
-            password (str): The user's password in plain text.
+            email (str): The user's email (plain text).
+            password (str): The user's password (plain text).
 
         Returns:
             Optional[User]: The authenticated User object if credentials are valid,
             otherwise None.
         """
         logger.debug("Authenticating user with email: %s", email)
+
+        # -- IMPORTANT --
+        # Instead of a direct encrypted-email lookup, this function relies on
+        # the updated get_user_by_email in UserService (which uses email_hash).
         user = UserService.get_user_by_email(email)
+
         if user:
-            # Using the user's own method to check the password provides
-            # flexibility if password checking logic needs customization.
             if user.check_password(password):
                 logger.info("User (ID: %s) authenticated successfully.", user.id)
                 return user
@@ -50,9 +50,6 @@ class AuthService:
     def update_user_password(user: Optional[User], current_pw: str, new_pw: str) -> bool:
         """
         Update a user's password if the current password is correct.
-
-        This method verifies the current password before updating it to ensure
-        that unauthorized password changes are prevented.
 
         Args:
             user (Optional[User]): The user object to update. If None, the operation fails.

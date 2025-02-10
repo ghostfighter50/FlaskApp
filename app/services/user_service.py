@@ -1,6 +1,7 @@
 import logging
 from typing import List, Optional
-from app.config.models import User
+
+from app.config.models import User, compute_email_hash
 from ..config.database import db
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ class UserService:
         """
         logger.debug("Fetching all users from the database.")
         users: List[User] = db.session.query(User).all()
-        logger.info(f"Fetched {len(users)} users from the database.")
+        logger.info("Fetched %d users from the database.", len(users))
         return users
 
     @staticmethod
@@ -38,55 +39,68 @@ class UserService:
         Returns:
             Optional[User]: The User object if found, otherwise None.
         """
-        logger.debug(f"Fetching user by ID: {user_id}")
+        logger.debug("Fetching user by ID: %s", user_id)
         user: Optional[User] = db.session.get(User, user_id)
         if user:
-            logger.debug(f"User found: {user.name} (ID: {user.id})")
+            logger.debug("User found: %s (ID: %s)", user.name, user.id)
         else:
-            logger.debug(f"No user found with ID: {user_id}")
+            logger.debug("No user found with ID: %s", user_id)
         return user
 
     @staticmethod
     def get_user_by_email(email: str) -> Optional[User]:
         """
-        Retrieves a user by their email address.
+        Retrieves a user by their email address (uses email_hash for lookup).
 
         Args:
-            email (str): The email address of the user.
+            email (str): The email address (plain text).
 
         Returns:
             Optional[User]: The User object if found, otherwise None.
         """
-        logger.debug(f"Fetching user by email: {email}")
-        user: Optional[User] = db.session.query(User).filter_by(email=email).first()
+        logger.debug("Fetching user by email: %s", email)
+
+        # Compute the email hash (case-insensitive, whitespace-stripped)
+        email_hash = compute_email_hash(email)
+        user: Optional[User] = db.session.query(User).filter_by(email_hash=email_hash).first()
+
         if user:
-            logger.debug(f"User found: {user.name} (ID: {user.id})")
+            logger.debug("User found: %s (ID: %s)", user.name, user.id)
         else:
-            logger.debug(f"No user found with email: {email}")
+            logger.debug("No user found with email: %s", email)
         return user
 
     @staticmethod
     def search_users(query: str) -> List[User]:
         """
         Searches for users whose name or email contains the query string.
+        Because name/email may be encrypted, we cannot directly do partial
+        matching in the SQL query. As a workaround, we:
+          1. Fetch all users (caution: large DB impact).
+          2. Decrypt name and email in Python.
+          3. Perform a case-insensitive substring check.
 
         Args:
-            query (str): The search query to match against user names and emails.
+            query (str): The search query to match against user name/email.
 
         Returns:
             List[User]: A list of User objects that match the query.
         """
-        logger.debug(f"Searching users with query: {query}")
-        users: List[User] = (
-            db.session.query(User)
-            .filter(
-                (User.name.ilike(f"%{query}%")) |
-                (User.email.ilike(f"%{query}%"))
-            )
-            .all()
-        )
-        logger.info(f"Found {len(users)} users matching query '{query}'.")
-        return users
+        logger.debug("Searching users with query: %s", query)
+        query_lower = query.lower()
+
+        # 1. Fetch all users
+        all_users: List[User] = db.session.query(User).all()
+
+        # 2. In-memory filter (decryption occurs automatically when accessing user.name / user.email)
+        matched = []
+        for user in all_users:
+            if (user.name and query_lower in user.name.lower()) or \
+               (user.email and query_lower in user.email.lower()):
+                matched.append(user)
+
+        logger.info("Found %d users matching query '%s'.", len(matched), query)
+        return matched
 
     @staticmethod
     def create_user(name: str, email: str, password: str, role: str) -> User:
@@ -97,24 +111,27 @@ class UserService:
             name (str): The name of the user.
             email (str): The email address of the user.
             password (str): The user's password in plain text.
-            role (str): The role assigned to the user (e.g., "admin", "student").
+            role (str): The role assigned to the user (e.g., "Administrator", "Student", etc.).
 
         Returns:
             User: The newly created User object.
         """
-        logger.debug(f"Creating user: {name}, Email: {email}, Role: {role}")
+        logger.debug("Creating user: %s, Email: %s, Role: %s", name, email, role)
         new_user = User(name=name, email=email, role=role)
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
         db.session.refresh(new_user)
-        logger.info(f"User created with ID: {new_user.id}")
+        logger.info("User created with ID: %s", new_user.id)
         return new_user
 
     @staticmethod
-    def update_user(user: User, name: Optional[str] = None,
-                    email: Optional[str] = None,
-                    password: Optional[str] = None) -> User:
+    def update_user(
+        user: User,
+        name: Optional[str] = None,
+        email: Optional[str] = None,
+        password: Optional[str] = None
+    ) -> User:
         """
         Updates an existing user's details.
 
@@ -128,18 +145,21 @@ class UserService:
             User: The updated User object.
         """
         logger.debug(
-            f"Updating user ID: {user.id} with Name: {name if name else 'unchanged'}, "
-            f"Email: {email if email else 'unchanged'}"
+            "Updating user ID: %s with Name: %s, Email: %s",
+            user.id,
+            name,
+            email,
         )
-        if name:
-            user.name = name
-        if email:
-            user.email = email
-        if password:
+        if name is not None:
+            user.name = name  # automatically encrypted
+        if email is not None:
+            user.email = email  # automatically encrypted + updates email_hash
+        if password is not None:
             user.set_password(password)
+
         db.session.commit()
         db.session.refresh(user)
-        logger.info(f"User ID: {user.id} updated successfully.")
+        logger.info("User ID: %s updated successfully.", user.id)
         return user
 
     @staticmethod
@@ -150,7 +170,7 @@ class UserService:
         Args:
             user (User): The User object to delete.
         """
-        logger.debug(f"Deleting user ID: {user.id}")
+        logger.debug("Deleting user ID: %s", user.id)
         db.session.delete(user)
         db.session.commit()
-        logger.info(f"User ID: {user.id} deleted successfully.")
+        logger.info("User ID: %s deleted successfully.", user.id)
