@@ -60,7 +60,6 @@ class UserService:
         """
         logger.debug("Fetching user by email: %s", email)
 
-        # Compute the email hash (case-insensitive, whitespace-stripped)
         email_hash = compute_email_hash(email)
         user: Optional[User] = db.session.query(User).filter_by(email_hash=email_hash).first()
 
@@ -89,10 +88,8 @@ class UserService:
         logger.debug("Searching users with query: %s", query)
         query_lower = query.lower()
 
-        # 1. Fetch all users
         all_users: List[User] = db.session.query(User).all()
 
-        # 2. In-memory filter (decryption occurs automatically when accessing user.name / user.email)
         matched = []
         for user in all_users:
             if (user.name and query_lower in user.name.lower()) or \
@@ -151,9 +148,9 @@ class UserService:
             email,
         )
         if name is not None:
-            user.name = name  # automatically encrypted
+            user.name = name
         if email is not None:
-            user.email = email  # automatically encrypted + updates email_hash
+            user.email = email
         if password is not None:
             user.set_password(password)
 

@@ -74,7 +74,6 @@ class GradeController:
             return jsonify({"msg": "Unauthorized access."}), 403
 
         data = request.get_json() or {}
-        # Ensure required fields are present
         if not all(k in data for k in ("course_id", "student_id", "grade", "grade_name")):
             logger.warning(f"Missing required fields in grade assignment: {data}")
             return jsonify({"msg": "All fields are required."}), 400
@@ -85,7 +84,6 @@ class GradeController:
         grade_name = data["grade_name"]
 
         try:
-            # Validate course & student
             course = self.course_service.get_course_by_id(course_id)
             student = self.user_service.get_user_by_id(student_id)
             if not course or not student:

@@ -24,11 +24,9 @@ def configure_logging(app: Flask) -> None:
     log_level = app.config.get("LOG_LEVEL", "DEBUG").upper()
     log_dir = app.config.get("LOG_DIR", os.path.join(app.root_path, "logs"))
 
-    # Create a logger for this app
     app_logger = logging.getLogger(app.name)
     app_logger.setLevel(log_level)
 
-    # Define a formatter for log messages
     formatter = logging.Formatter(
         "%(asctime)s - [%(levelname)s] - %(name)s - %(funcName)s() - %(message)s"
     )
@@ -37,15 +35,14 @@ def configure_logging(app: Flask) -> None:
     if app_logger.hasHandlers():
         app_logger.handlers.clear()
 
-    # Console Handler: logs to the console
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)  # Set to INFO or log_level
+    console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(formatter)
     app_logger.addHandler(console_handler)
 
     # File Handler: logs to a file with rotation
     try:
-        os.makedirs(log_dir, exist_ok=True)  # Ensure log directory exists
+        os.makedirs(log_dir, exist_ok=True)
         file_handler = RotatingFileHandler(
             os.path.join(log_dir, "app.log"),
             maxBytes=5 * 1024 * 1024,
@@ -58,8 +55,3 @@ def configure_logging(app: Flask) -> None:
         app_logger.error(f"Failed to create log directory or file handler: {e}")
 
     app_logger.info("Logging has been configured via configure_logging.")
-
-
-# Optional: also define get_logger if you want module-specific loggers
-def get_logger(module_name: str) -> logging.Logger:
-    return logging.getLogger(module_name)

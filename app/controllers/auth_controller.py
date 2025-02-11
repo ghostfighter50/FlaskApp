@@ -51,7 +51,6 @@ class AuthController:
                 logger.warning(f"Missing fields: {missing_fields}")
                 return {"error": f"Missing required fields: {', '.join(missing_fields)}"}, 400
 
-            # Validate email and password formats.
             if not validate_email(data['email']):
                 logger.warning("Invalid email format during registration.")
                 return {"error": "Invalid email format"}, 400
@@ -65,17 +64,14 @@ class AuthController:
                 self.user_service.get_user_by_id(current_user_id) if current_user_id else None
             )
 
-            # Disallow anonymous registration by requiring an authenticated user.
             if not current_user:
                 logger.warning("Registration attempted by anonymous user.")
                 return {"error": "Unauthorized access"}, 403
 
-            # Authorization: Only an admin can create users.
             if current_user.role != "Administrator":
                 logger.warning(f"Unauthorized registration attempt by user ID: {current_user_id}")
                 return {"error": "Unauthorized access"}, 403
 
-            # Check if the email is already in use.
             if self.user_service.get_user_by_email(data["email"]):
                 logger.warning("Email already in use during registration.")
                 return {"error": "Email already in use"}, 409

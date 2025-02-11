@@ -42,7 +42,6 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    # Use StringEncryptedType with an explicit length (512) for MySQL
     _name = db.Column(
         "name",
         StringEncryptedType(db.String, SECRET_KEY, engine=FernetEngine, length=512),
@@ -67,12 +66,10 @@ class User(db.Model):
         onupdate=lambda: datetime.now(timezone.utc)
     )
 
-    # Relationships with other models
     courses_created = db.relationship('Course', backref='professor', lazy='joined')
     enrollments = db.relationship('Enrollment', backref='student', lazy='joined')
     grades = db.relationship('Grade', backref='student', lazy='joined')
 
-    # Property for the decrypted name.
     @property
     def name(self):
         return self._name
@@ -81,7 +78,6 @@ class User(db.Model):
     def name(self, value):
         self._name = value
 
-    # Property for the decrypted email.
     @property
     def email(self):
         return self._email
@@ -89,7 +85,6 @@ class User(db.Model):
     @email.setter
     def email(self, value):
         self._email = value
-        # Automatically update the email_hash when setting the email.
         self.email_hash = compute_email_hash(value)
 
     def set_password(self, password: str) -> None:

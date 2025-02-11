@@ -16,7 +16,7 @@ def test_list_grades(client, professor_token):
 
 def test_assign_grade_missing_fields(client, professor_token):
     headers = {"Authorization": f"Bearer {professor_token}"}
-    payload = {}  # Missing fields
+    payload = {}
 
     response = client.post("/api/v1/grades/", json=payload, headers=headers)
 
@@ -78,7 +78,7 @@ def test_update_grade_unauthorized(client, student_token, grade_id):
 
 def test_update_grade_missing_fields(client, professor_token, grade_id):
     headers = {"Authorization": f"Bearer {professor_token}"}
-    payload = {}  # Missing 'grade'
+    payload = {}
 
     response = client.put(f"/api/v1/grades/{grade_id}", json=payload, headers=headers)
 

@@ -30,9 +30,6 @@ class AuthService:
         """
         logger.debug("Authenticating user with email: %s", email)
 
-        # -- IMPORTANT --
-        # Instead of a direct encrypted-email lookup, this function relies on
-        # the updated get_user_by_email in UserService (which uses email_hash).
         user = UserService.get_user_by_email(email)
 
         if user:
@@ -65,10 +62,8 @@ class AuthService:
 
         logger.debug("Attempting to update password for user ID: %s", user.id)
 
-        # Verify the current password using a secure hash check
         if check_password_hash(user.password_hash, current_pw):
             try:
-                # Generate a new hash for the new password and update the user's record
                 user.password_hash = generate_password_hash(new_pw)
                 db.session.commit()
                 logger.info("Password updated successfully for user ID: %s", user.id)

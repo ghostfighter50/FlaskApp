@@ -140,11 +140,9 @@ class CourseService:
         """
         logger.debug("Deleting course ID: %s", course.id)
 
-        # Ensure all related records (enrollments, grades) are removed first
         db.session.query(Enrollment).filter_by(course_id=course.id).delete()
         db.session.query(Grade).filter_by(course_id=course.id).delete()
 
-        # Delete the course record
         db.session.delete(course)
         db.session.commit()
         logger.info("Course ID: %s deleted successfully.", course.id)

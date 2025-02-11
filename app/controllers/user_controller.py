@@ -46,13 +46,11 @@ class UserController:
         current_user_id = get_jwt_identity()
         current_user = self.user_service.get_user_by_id(current_user_id)
 
-        # Check if the user is authorized to access the user details
         user = self.user_service.get_user_by_id(user_id)
         if not user:
             logger.warning(f"User not found: ID {user_id}")
             return jsonify({'msg': 'User not found.'}), 404
 
-        # Allow access for Admins, Professors, or the user themselves
         if current_user.role not in ['Administrator', 'Professor'] and current_user.id != user_id:
             logger.warning(f"Unauthorized access attempt by user ID: {current_user_id}")
             return jsonify({'msg': 'Unauthorized access.'}), 403
@@ -112,8 +110,6 @@ class UserController:
 
         try:
             user = self.user_service.create_user(name, email, password, role)
-            # Re-fetch the user to ensure all fields are loaded.
-            user = self.user_service.get_user_by_id(user.id)
             user_data = serialize_user(user)
             return jsonify({'msg': 'User created successfully.', 'user': user_data}), 200
         except Exception as e:
@@ -143,7 +139,7 @@ class UserController:
 
         try:
             updated_user = self.user_service.update_user(user, name, email, password)
-            # Re-fetch the user to ensure updated values.
+
             updated_user = self.user_service.get_user_by_id(updated_user.id)
             user_data = serialize_user(updated_user)
             return jsonify({'msg': 'User updated successfully.', 'user': user_data}), 200

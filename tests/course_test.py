@@ -29,7 +29,7 @@ def test_list_students_in_course(client, professor_token, course_id):
     headers = {"Authorization": f"Bearer {professor_token}"}
     response = client.get(f"/api/v1/courses/{course_id}/students", headers=headers)
 
-    assert response.status_code in [200, 404]  # 404 if no students are enrolled
+    assert response.status_code in [200, 404]
     if response.status_code == 200:
         assert "students" in response.json
 

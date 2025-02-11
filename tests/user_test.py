@@ -11,7 +11,6 @@ def test_list_users_non_admin(client, professor_token):
     headers = {"Authorization": f"Bearer {professor_token}"}
     response = client.get("/api/v1/users/", headers=headers)
     response.get_json()
-    # Only an administrator should be allowed to list users.
     assert response.status_code == 403
 
 
@@ -56,7 +55,7 @@ def test_search_users_non_admin(client, professor_token):
 
 def test_create_user_missing_fields(client, admin_token):
     headers = {"Authorization": f"Bearer {admin_token}"}
-    payload = {}  # Missing required fields
+    payload = {}
     response = client.post("/api/v1/users/", json=payload, headers=headers)
     response.get_json()
     assert response.status_code == 400

@@ -38,7 +38,6 @@ def serialize_user(user):
     if user is None:
         return None
 
-    # Build the serialized dictionary. You can adjust the date formatting as needed.
     serialized = {
         "id": str(user.id),
         "name": user.name,

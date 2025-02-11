@@ -24,10 +24,8 @@ def initialize_database() -> bool:
         return True
 
     except SQLAlchemyError as e:
-        # Log specific SQLAlchemy errors
         logger.error(f"SQLAlchemy error: {str(e)}", exc_info=True)
         return False
     except Exception as e:
-        # Log any other unexpected errors
         logger.error(f"Unexpected error: {str(e)}", exc_info=True)
         return False
