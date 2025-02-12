@@ -1,6 +1,6 @@
 # University Management API
 
-The University Management API is a robust RESTful service that facilitates user authentication, course management, enrollment, and grade operations. It supports role-based access control (Administrator, Professor, Student) using JWT authentication and is fully documented with an OpenAPI 3.0 specification.
+The University Management API is a robust RESTful service tailored for university environments. It facilitates user authentication, comprehensive course management, enrollment administration, and grade operations via secure endpoints. Built with Flask and protected by JWT authentication, the API seamlessly integrates with a modern React Vite frontend that leverages Axios for API requests.
 
 ## Table of Contents
 
@@ -8,6 +8,8 @@ The University Management API is a robust RESTful service that facilitates user 
 - [Features](#features)
 - [Technology Stack](#technology-stack)
 - [Installation](#installation)
+    - [Backend Setup](#backend-setup)
+    - [Frontend Setup](#frontend-setup)
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [API Documentation](#api-documentation)
@@ -16,30 +18,38 @@ The University Management API is a robust RESTful service that facilitates user 
 
 ## Overview
 
-This API is designed for university environments, offering secure endpoints to manage users, courses, enrollments, and grades. Its modular design and clear separation between roles make it both powerful and scalable.
+The University Management API offers secure endpoints to manage users, courses, enrollments, and grades. With differentiated access roles (Administrator, Professor, Student) and state-of-the-art security protocols, this API is designed to meet the complex needs of modern academic institutions.
 
 ## Features
 
 - **User Authentication:**
-    - Login using JWT tokens
-    - User registration (initiated by administrators)
-    - Password change functionality
+    - Secure login using JWT tokens.
+    - Administrator-initiated user registration.
+    - Password management and change functionality.
 
 - **User Management:**
-    - Administrators can list, search, create, update, and delete users.
-    - Professors and individual users have tailored access to user information.
+    - Full CRUD operations for Administrators.
+    - Role-based data access tailored for Professors and individual users.
+
+- **Data Security:**
+    - AES-256 encryption for sensitive fields.
+    - Optimized querying with stored email hashes.
 
 - **Course Management:**
-    - Create, update, and delete courses (for Administrators and Professors).
-    - All authenticated users can search and view course listings.
+    - Endpoints for course creation, updates, and deletion.
+    - Comprehensive course listings accessible to all authenticated users.
 
 - **Enrollment:**
-    - Students can join or leave courses.
-    - Professors and administrators can review all students enrolled in a course.
+    - Enrollment and course drop features for students.
+    - Oversight capabilities for Professors and Administrators on enrollment processes.
 
 - **Grade Management:**
-    - Professors and Administrators can assign, update, list, and delete student grades.
-    - Retrieve grade reports per student for a specific course.
+    - Grade assignment, updates, and deletion by Professors and Administrators.
+    - Detailed student and course grade reports.
+
+- **Modern Frontend:**
+    - A professional React Vite interface.
+    - Axios is used on the client to handle API communications, ensuring fast and reliable data exchanges.
 
 ## Technology Stack
 
@@ -48,17 +58,20 @@ This API is designed for university environments, offering secure endpoints to m
 - **API Documentation:** OpenAPI 3.0 (Swagger/OpenAPI Specification)
 - **Database:** MySQL
 - **Logging:** Python logging module
+- **Frontend:** React Vite; API requests are handled with Axios
 
 ## Installation
 
-### Clone the Repository
+### Backend Setup
+
+#### Clone the Repository
 
 ```bash
 git clone https://github.com/Ghostfighter50/FlaskApp.git
-cd FlaskApp
+cd FlaskApp/api
 ```
 
-### Create a Virtual Environment
+#### Create a Virtual Environment
 
 ```bash
 python3 -m venv venv
@@ -68,42 +81,64 @@ source venv/bin/activate
 venv\Scripts\activate
 ```
 
-### Install Dependencies
+#### Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Set Up the Database
+#### Set Up the Database
 
-- Update your database connection string in the configuration.
+- Update your database connection string in the configuration or environment variables.
+
+### Frontend Setup
+
+#### Clone the Frontend Repository
+
+```bash
+git clone https://github.com/Ghostfighter50/FlaskApp.git
+cd FlaskApp/client
+```
+
+#### Install Frontend Dependencies
+
+```bash
+npm install
+```
+
+#### Run the Frontend
+
+```bash
+npm run dev
+```
+
+The React Vite frontend, powered by Axios for API requests, will run on its default port (usually http://localhost:3000) and interact seamlessly with the backend API.
 
 ## Configuration
 
-The application can be configured through environment variables or a dedicated configuration file. Common settings include:
+Configure the application using environment variables or a dedicated configuration file. Key settings include:
 
 - `FLASK_ENV`: Set to `development` or `production`
-- `DATABASE_URL`: Provide your database connection URL
-- `JWT_SECRET_KEY`: Define a secure secret key for JWT tokens
-
-Additional settings control logging, debugging, and other application parameters.
+- `DATABASE_URL`: Your database connection URL
+- `JWT_SECRET_KEY`: Secure key for JWT tokens
+- Additional parameters for logging, debugging, and more.
 
 ## Usage
 
-### Running the Application
+### Running the Backend
 
-Start the API with the following command:
+Launch the API using the command below:
 
 ```bash
 python ./run.py
 ```
 
-The API will run at:
+The API will be available at:
 http://localhost:5000/api/v1
 
 ### Authentication
 
-Obtain a JWT token by calling the `/auth/login` endpoint. Include your token in the Authorization header:
+Authenticate by requesting a JWT token from the `/auth/login` endpoint. Include your token in the Authorization header:
 
 ```
 Authorization: Bearer <your_token_here>
@@ -111,13 +146,13 @@ Authorization: Bearer <your_token_here>
 
 ## API Documentation
 
-Interactive API documentation is available through Swagger UI or Redoc. The full OpenAPI specification can be found in the `openapi.yaml` file located at the repository root.
+Interactive API documentation is available via Swagger UI or Redoc. The complete OpenAPI specification is maintained in the `openapi.yaml` file at the repository root.
 
 ## Testing
 
-### Tests
+### Running Tests
 
-Run tests with pytest:
+Execute tests with pytest:
 
 ```bash
 pytest

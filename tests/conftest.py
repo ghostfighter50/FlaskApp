@@ -1,7 +1,7 @@
 import pytest
 from flask_jwt_extended import create_access_token
-from app import create_app, db
-from app.config.models import Course, Grade, User
+from api import create_app, db
+from api.config.models import Course, Grade, User
 
 
 @pytest.fixture()
